@@ -65,5 +65,10 @@
       <li>Bootstrap5</li>
       <li>JavaScript</li>
     </ul>
+    <i><li>Database:</li></i>
+    <ul>
+      <li>MySQL</li>
+      <li>Docker Desktop</li>
+    </ul>
   </ol>
 </p>
