@@ -76,4 +76,4 @@
 <img width="1366" height="895" alt="image" src="https://github.com/user-attachments/assets/b0d83e04-aad6-4a83-bcda-02acd7c99736" />
 <p>Диаграмма Use-case</p>
 <img width="1261" height="927" alt="image" src="https://github.com/user-attachments/assets/ead43184-0caf-4cf3-a9ad-3b1af0e08e54" />
-<p>Диаграмма базы данных</p>
+<p style="text-align: center;">Диаграмма базы данных</p>
