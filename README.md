@@ -54,18 +54,18 @@
 <h2><br><b>Стек технологии:</b><br></h2>
 <p>
   <ol>
-    <i><li>Backend:</li></i>
+    <b><i><li>Backend:</li></i></b>
     <ul>
       <li>Java Spring Boot(Spring Security, Spring Data JPA, Spring Boot DevTools, Thymeleaf, Spring Web, Spring Validation, Lombok)</li>
     </ul>
-    <i><li>Frontend:</li></i>
+    <b><i><li>Frontend:</li></i></b>
     <ul>
       <li>HTML5</li>
       <li>CSS3</li>
       <li>Bootstrap5</li>
       <li>JavaScript</li>
     </ul>
-    <i><li>Database:</li></i>
+    <b><i><li>Database:</li></i></b>
     <ul>
       <li>MySQL</li>
       <li>Docker Desktop</li>
