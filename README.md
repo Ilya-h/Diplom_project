@@ -55,5 +55,8 @@
 <p>
   <ol>
     <i><li>Backend:</li></i>
+    <ul>
+      <li>Java Spring Boot</li>
+    </ul>
   </ol>
 </p>
