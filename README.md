@@ -56,7 +56,11 @@
   <ol>
     <i><li>Backend:</li></i>
     <ul>
-      <li>Java Spring Boot((Spring Security, Spring Data JPA, Spring Boot DevTools, Thymeleaf, Spring Web, Spring Validation, Lombok)</li>
+      <li>Java Spring Boot(Spring Security, Spring Data JPA, Spring Boot DevTools, Thymeleaf, Spring Web, Spring Validation, Lombok)</li>
+    </ul>
+    <i><li>Frontend:</li></i>
+    <ul>
+      <li>HTML</li>
     </ul>
   </ol>
 </p>
