@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Детали пользователя</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/dashboard">Кинотеатр Админ</a>
+        <a href="/admin/users" class="btn btn-secondary">Назад к списку</a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2>Детали пользователя</h2>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Основная информация</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>ID:</strong> <span th:text="${user.id}">1</span></p>
+                    <p><strong>Имя:</strong> <span th:text="${user.firstName}">Имя</span></p>
+                    <p><strong>Фамилия:</strong> <span th:text="${user.lastName}">Фамилия</span></p>
+                    <p><strong>Email:</strong> <span th:text="${user.email}">email@example.com</span></p>
+                    <p><strong>Телефон:</strong> <span th:text="${user.phoneNumber}">+7 999 999 99 99</span></p>
+
+                    <form method="post" th:action="@{/admin/users/{id}/role(id=${user.id})}">
+                        <div class="mb-3">
+                            <label class="form-label">Роль</label>
+                            <select name="role" class="form-select">
+                                <option value="USER" th:selected="${user.role == 'USER'}">Пользователь</option>
+                                <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Администратор</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Обновить роль</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Статистика</h5>
+                </div>
+                <div class="card-body" th:if="${customerStats}">
+                    <p><strong>Всего билетов:</strong> <span th:text="${customerStats.totalTickets}">0</span></p>
+                    <p><strong>Общая сумма:</strong> <span th:text="${customerStats.totalSpent} + ' ₽'">0 ₽</span></p>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Билеты пользователя</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr>
+                            <th>ID билета</th>
+                            <th>Фильм</th>
+                            <th>Дата сеанса</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="ticket : ${userTickets}">
+                            <td th:text="${ticket.id}">1</td>
+                            <td th:text="${ticket.movieTitle}">Фильм</td>
+                            <td th:text="${#temporals.format(ticket.sessionDateTime, 'dd.MM.yyyy HH:mm')}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

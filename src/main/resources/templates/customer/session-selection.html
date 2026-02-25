@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Выбор мест</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .seat {
+            width: 40px;
+            height: 40px;
+            margin: 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 5px;
+            user-select: none;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .available {
+            background-color: #28a745;
+            color: white;
+            border: 1px solid #1e7e34;
+        }
+        .selected {
+            background-color: #007bff;
+            color: white;
+            border: 2px solid #0056b3;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px #007bff;
+        }
+        .occupied {
+            background-color: #dc3545;
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.9;
+            border: 2px solid #bd2130;
+            position: relative;
+        }
+        .occupied:after {
+            content: "✗";
+            position: absolute;
+            font-size: 20px;
+            color: white;
+            text-shadow: 0 0 3px rgba(0,0,0,0.5);
+        }
+        .vip {
+            background-color: #ffc107;
+            color: black;
+            border: 2px solid #ff9800;
+            font-weight: bold;
+        }
+        .couple {
+            background-color: #e83e8c;
+            color: white;
+            border: 2px solid #c2185b;
+        }
+        .disabled {
+            background-color: #6c757d;
+            color: white;
+            border: 2px dashed #495057;
+            cursor: pointer;
+        }
+        .screen {
+            background: linear-gradient(to bottom, #444, #222);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0 40px 0;
+            border-radius: 8px;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            border: 3px solid #333;
+        }
+        .seat:hover:not(.occupied) {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+        .seat.occupied:hover {
+            cursor: not-allowed;
+            transform: none;
+        }
+        .row-label {
+            width: 80px;
+            font-weight: bold;
+            text-align: center;
+            color: #333;
+            font-size: 15px;
+            background-color: #f8f9fa;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .seats-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .seats-list {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 4px;
+            flex-grow: 1;
+            justify-content: center;
+            min-height: 44px;
+        }
+        .legend-box {
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .price-display {
+            background-color: #e7f3ff;
+            border-left: 5px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .order-summary {
+            position: sticky;
+            top: 20px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .occupied-vip {
+            background: linear-gradient(135deg, #dc3545 50%, #ffc107 50%);
+            color: white;
+            border: 2px solid #bd2130;
+        }
+        .occupied-couple {
+            background: linear-gradient(135deg, #dc3545 50%, #e83e8c 50%);
+            color: white;
+            border: 2px solid #bd2130;
+        }
+        .occupied-disabled {
+            background: linear-gradient(135deg, #dc3545 50%, #6c757d 50%);
+            color: white;
+            border: 2px dashed #bd2130;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">Кинотеатр</a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4">Выбор мест</h2>
+
+    <!-- Показываем сообщение о успешной покупке -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Успешно!</strong> <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="card mb-4 shadow">
+        <div class="card-body">
+            <h4 th:text="${movieSession?.movie?.title ?: 'Фильм'}" class="text-primary"></h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Дата и время:</strong><br>
+                        <span th:if="${movieSession?.startTime != null}"
+                              th:text="${#temporals.format(movieSession.startTime, 'dd.MM.yyyy HH:mm')}"
+                              class="fw-bold"></span>
+                        <span th:unless="${movieSession?.startTime != null}" class="fw-bold">Не указано</span>
+                    </p>
+                    <p><strong>Зал:</strong> <span th:text="${movieSession?.hall?.name ?: 'Не указан'}" class="fw-bold"></span></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Формат:</strong> <span th:text="${movieSession?.format ?: 'Не указан'}" class="fw-bold"></span></p>
+                    <p><strong>Цена (стандарт):</strong>
+                        <span id="base-price" th:text="${#numbers.formatDecimal(250, 0, 2)} + ' ₽'"
+                              class="fw-bold text-success"></span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="price-display mt-3">
+                <strong class="text-primary">Цены по типам мест:</strong><br>
+                • Стандарт: <span th:text="${#numbers.formatDecimal(250, 0, 2)} + ' ₽'"></span><br>
+                • VIP: <span th:text="${#numbers.formatDecimal(650, 0, 2)} + ' ₽'" class="text-warning"></span><br>
+                • Парные: <span th:text="${#numbers.formatDecimal(950, 0, 2)} + ' ₽'" class="text-danger"></span><br>
+                • Для инвалидов: <strong>Бесплатно</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center screen mb-5">
+        🎬 ЭКРАН 🎬
+    </div>
+
+    <!-- ФОРМА СРАЗУ ОТПРАВЛЯЕТСЯ НА /booking/sessions/{id}/payment -->
+    <form method="post" th:action="@{/booking/sessions/{id}/payment(id=${movieSession?.id})}" id="booking-form">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="mb-4" id="seats-container">
+            <!-- Проверяем, есть ли места -->
+            <div th:if="${seatsByRow != null and not seatsByRow.isEmpty()}">
+                <!-- Отображаем ряды с местами -->
+                <div th:each="rowEntry : ${seatsByRow}">
+                    <div class="seats-row">
+                        <div class="row-label" th:text="'Ряд ' + ${rowEntry.key}"></div>
+                        <div class="seats-list">
+                            <!-- Отображаем места в текущем ряду -->
+                            <div th:each="seat : ${rowEntry.value}">
+                                <!-- VIP места -->
+                                <div th:if="${seat.seatType == 'VIP'}">
+                                    <div th:if="${seat.isAvailable}"
+                                         class="seat vip"
+                                         th:attr="data-id=${seat.seatId}, data-available=true,
+                                                  data-seat-type=${seat.seatType}, data-row=${seat.rowNumber},
+                                                  data-number=${seat.seatNumber}, data-price='650.00'"
+                                         onclick="toggleSeat(this)"
+                                         th:title="'VIP: Ряд ' + ${seat.rowNumber} + ', Место ' + ${seat.seatNumber}">
+                                        <span th:text="${seat.seatNumber}"></span>
+                                    </div>
+                                    <div th:unless="${seat.isAvailable}"
+                                         class="seat occupied occupied-vip"
+                                         th:attr="data-id=${seat.seatId}, data-available=false,
+                                                  data-seat-type=${seat.seatType}, data-row=${seat.rowNumber},
+                                                  data-number=${seat.seatNumber}"
+                                         th:title="'VIP: Ряд ' + ${seat.rowNumber} + ', Место ' + ${seat.seatNumber} + ' (ЗАНЯТО)'">
+                                        <span th:text="${seat.seatNumber}" style="opacity:0.7"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Парные места -->
+                                <div th:if="${seat.seatType == 'COUPLE'}">
+                                    <div th:if="${seat.isAvailable}"
+                                         class="seat couple"
+                                         th:attr="data-id=${seat.seatId}, data-available=true,
+                                                  data-seat-type=${seat.seatType}, data-row=${seat.rowNumber},
+                                                  data-number=${seat.seatNumber}, data-price='950.00'"
+                                         onclick="toggleSeat(this)"
+                                         th:title="'Парные: Ряд ' + ${seat.rowNumber} + ', Место ' + ${seat.seatNumber}">
+                                        <span th:text="${seat.seatNumber}"></span>
+                                    </div>
+                                    <div th:unless="${seat.isAvailable}"
+                                         class="seat occupied occupied-couple"
+                                         th:attr="data-id=${seat.seatId}, data-available=false,
+                                                  data-seat-type=${seat.seatType}, data-row=${seat.rowNumber},
+                                                  data-number=${seat.seatNumber}"
+                                         th:title="'Парные: Ряд ' + ${seat.rowNumber} + ', Место ' + ${seat.seatNumber} + ' (ЗАНЯТО)'">
+                                        <span th:text="${seat.seatNumber}" style="opacity:0.7"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Места для инвалидов -->
+                                <div th:if="${seat.seatType == 'DISABLED'}">
+                                    <div th:if="${seat.isAvailable}"
+                                         class="seat disabled"
+                                         th:attr="data-id=${seat.seatId}, data-available=true,
+                                                  data-seat-type=${seat.seatType}, data-row=${seat.rowNumber},
+                                                  data-number=${seat.seatNumber}, data-price='0.00'"
+                                         onclick="toggleSeat(this)"
+                                         th:title="'Для инвалидов: Ряд ' + ${seat.rowNumber} + ', Место ' + ${seat.seatNumber}">
+                                        <span th:text="${seat.seatNumber}"></span>
+                                    </div>
+                                    <div th:unless="${seat.isAvailable}"
+                                         class="seat occupied occupied-disabled"
+                                         th:attr="data-id=${seat.seatId}, data-available=false,
+                                                  data-seat-type=${seat.seatType}, data-row=${seat.rowNumber},
+                                                  data-number=${seat.seatNumber}"
+                                         th:title="'Для инвалидов: Ряд ' + ${seat.rowNumber} + ', Место ' + ${seat.seatNumber} + ' (ЗАНЯТО)'">
+                                        <span th:text="${seat.seatNumber}" style="opacity:0.7"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Стандартные места (включая PREMIUM, которые тоже должны быть стандартными) -->
+                                <div th:if="${seat.seatType == 'STANDARD' or seat.seatType == 'PREMIUM' or seat.seatType == null}">
+                                    <div th:if="${seat.isAvailable}"
+                                         class="seat available"
+                                         th:attr="data-id=${seat.seatId}, data-available=true,
+                                                  data-seat-type='STANDARD', data-row=${seat.rowNumber},
+                                                  data-number=${seat.seatNumber}, data-price='250.00'"
+                                         onclick="toggleSeat(this)"
+                                         th:title="'Стандарт: Ряд ' + ${seat.rowNumber} + ', Место ' + ${seat.seatNumber}">
+                                        <span th:text="${seat.seatNumber}"></span>
+                                    </div>
+                                    <div th:unless="${seat.isAvailable}"
+                                         class="seat occupied"
+                                         th:attr="data-id=${seat.seatId}, data-available=false,
+                                                  data-seat-type='STANDARD', data-row=${seat.rowNumber},
+                                                  data-number=${seat.seatNumber}"
+                                         th:title="'Стандарт: Ряд ' + ${seat.rowNumber} + ', Место ' + ${seat.seatNumber} + ' (ЗАНЯТО)'">
+                                        <span th:text="${seat.seatNumber}" style="opacity:0.7"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div th:unless="${seatsByRow != null and not seatsByRow.isEmpty()}" class="alert alert-warning text-center">
+                <h5>Нет доступных мест</h5>
+                <p>В данном зале нет конфигурации мест или все места уже заняты.</p>
+                <p>Пожалуйста, выберите другой сеанс или обратитесь к администратору.</p>
+            </div>
+        </div>
+
+        <!-- Скрытые поля для передачи данных -->
+        <input type="hidden" name="selectedSeatIds" id="selectedSeatIds" value="">
+        <input type="hidden" name="totalPrice" id="totalPrice" value="0">
+        <input type="hidden" name="selectedSeatsCount" id="selectedSeatsCount" value="0">
+
+        <div class="row mt-5">
+            <div class="col-md-6">
+                <div class="legend-box shadow">
+                    <h5 class="mb-3">Легенда мест:</h5>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="seat available me-3"></div>
+                                <span>Свободно (250 ₽)</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="seat selected me-3"></div>
+                                <span>Выбрано</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="seat occupied me-3"></div>
+                                <span>Занято</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="seat vip me-3"></div>
+                                <span class="fw-bold">VIP (650 ₽)</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="seat couple me-3"></div>
+                                <span>Парные (950 ₽)</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="seat disabled me-3"></div>
+                                <span>Для инвалидов (бесплатно)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <small><strong>Схема зала (прогрессивная):</strong><br>
+                            • Ряды 1-2: VIP места (первые 3 места)<br>
+                            • Ряды 3-7: стандартные места (включая ряды 4-6)<br>
+                            • Ряды 8-9: парные места (последние 2 места)<br>
+                            • Ряд 9: места для инвалидов (первое и последнее)</small>
+                    </div>
+                    <div class="alert alert-warning mt-2">
+                        <small><strong>⚠ Важно:</strong> Места для инвалидов доступны только для подтвержденных пользователей с ограниченными возможностями</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow order-summary">
+                    <div class="card-body">
+                        <h5 class="mb-3">Ваш заказ:</h5>
+
+                        <!-- Сводка заказа -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Выбрано мест:</span>
+                                <strong><span id="selected-count" class="text-primary">0</span></strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Общая сумма:</span>
+                                <strong><span id="total-price-display" class="text-success fs-5">0.00</span> ₽</strong>
+                            </div>
+                        </div>
+
+                        <!-- Список выбранных мест -->
+                        <div id="selected-seats-list" class="mb-4">
+                            <strong class="mb-2 d-block">Выбранные места:</strong>
+                            <div id="selected-seats-names" class="text-muted small">
+                                <em>Нет выбранных мест</em>
+                            </div>
+                        </div>
+
+                        <!-- Кнопка отправки формы -->
+                        <button type="submit" class="btn btn-success btn-lg py-3 w-100 mb-3" id="submit-btn" disabled>
+                            <span id="submit-text">Перейти к оплате</span>
+                        </button>
+
+                        <!-- Кнопка отмены -->
+                        <a th:href="@{/booking/movies}" class="btn btn-outline-secondary py-3 w-100">
+                            Отменить выбор
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    const selectedSeats = [];
+    const seatInfo = {};
+
+    function toggleSeat(element) {
+        // Проверяем, можно ли выбрать это место
+        const isAvailable = element.getAttribute('data-available') === 'true';
+
+        if (!isAvailable) {
+            alert('Это место уже занято! Пожалуйста, выберите другое место.');
+            return;
+        }
+
+        const seatId = element.getAttribute('data-id');
+        const seatType = element.getAttribute('data-seat-type');
+        const row = element.getAttribute('data-row');
+        const number = element.getAttribute('data-number');
+
+        const index = selectedSeats.indexOf(seatId);
+
+        if (index > -1) {
+            // Убираем выделение
+            selectedSeats.splice(index, 1);
+            delete seatInfo[seatId];
+
+            // Восстанавливаем оригинальный класс в зависимости от типа места
+            element.classList.remove('selected');
+            if (seatType === 'VIP') {
+                element.classList.add('vip');
+            } else if (seatType === 'COUPLE') {
+                element.classList.add('couple');
+            } else if (seatType === 'DISABLED') {
+                element.classList.add('disabled');
+            } else {
+                element.classList.add('available');
+            }
+        } else {
+            // Добавляем в выбранные
+            selectedSeats.push(seatId);
+
+            // Получаем цену места (из data-price)
+            let price = parseFloat(element.getAttribute('data-price')) || 0;
+
+            // Сохраняем информацию
+            seatInfo[seatId] = {
+                row: row,
+                number: number,
+                type: seatType,
+                price: price,
+                isAvailable: isAvailable
+            };
+
+            // Подсвечиваем
+            element.classList.remove('available', 'vip', 'couple', 'disabled');
+            element.classList.add('selected');
+        }
+
+        updateDisplay();
+    }
+
+    function getTypeName(seatType) {
+        const names = {
+            'STANDARD': 'Стандарт',
+            'VIP': 'VIP',
+            'COUPLE': 'Парные',
+            'DISABLED': 'Для инвалидов'
+        };
+        return names[seatType] || 'Стандарт'; // Всегда возвращаем "Стандарт" для любых других типов
+    }
+
+    function updateDisplay() {
+        // Считаем общую сумму
+        let total = 0;
+        selectedSeats.forEach(id => {
+            total += seatInfo[id]?.price || 0;
+        });
+
+        // Обновляем счетчик и сумму в интерфейсе
+        document.getElementById('selected-count').textContent = selectedSeats.length;
+        document.getElementById('total-price-display').textContent = total.toFixed(2);
+
+        // Обновляем список выбранных мест
+        const listElement = document.getElementById('selected-seats-names');
+        if (selectedSeats.length > 0) {
+            let html = '';
+            selectedSeats.forEach(id => {
+                const info = seatInfo[id];
+                if (info) {
+                    const priceText = info.price === 0 ? 'Бесплатно' : info.price.toFixed(2) + ' ₽';
+                    html += `<div class="mb-2 p-2 border rounded bg-light">
+                                <div class="d-flex justify-content-between">
+                                    <strong>Ряд ${info.row}, Место ${info.number}</strong>
+                                    <span class="text-success">${priceText}</span>
+                                </div>
+                                <div class="text-muted small">${getTypeName(info.type)}</div>
+                             </div>`;
+                }
+            });
+            listElement.innerHTML = html;
+        } else {
+            listElement.innerHTML = '<div class="text-center p-3"><em class="text-muted">Нет выбранных мест</em></div>';
+        }
+
+        // Обновляем кнопку
+        const btn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('submit-text');
+        const hasSeats = selectedSeats.length > 0;
+
+        btn.disabled = !hasSeats;
+
+        if (hasSeats) {
+            btnText.textContent = `Оплатить ${total.toFixed(2)} ₽`;
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-success');
+        } else {
+            btnText.textContent = 'Выберите места';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-primary');
+        }
+
+        // Сохраняем данные в скрытые поля формы
+        document.getElementById('selectedSeatIds').value = selectedSeats.join(',');
+        document.getElementById('totalPrice').value = total.toFixed(2);
+        document.getElementById('selectedSeatsCount').value = selectedSeats.length;
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        updateDisplay();
+
+        // Если есть сообщение об успешной покупке, обновляем отображение занятых мест
+        const successAlert = document.querySelector('.alert-success');
+        if (successAlert) {
+            // При необходимости можно добавить дополнительную логику
+            // Например, обновить состояние мест через AJAX
+        }
+    });
+
+    // Обработка отправки формы
+    document.getElementById('booking-form').addEventListener('submit', function(e) {
+        if (selectedSeats.length === 0) {
+            e.preventDefault();
+            alert('Пожалуйста, выберите хотя бы одно место!');
+            return false;
+        }
+
+        // Проверяем, что все выбранные места все еще доступны
+        let allAvailable = true;
+        const unavailableSeats = [];
+
+        selectedSeats.forEach(seatId => {
+            const seatElement = document.querySelector(`.seat[data-id="${seatId}"]`);
+            if (seatElement) {
+                const isAvailable = seatElement.getAttribute('data-available') === 'true';
+                if (!isAvailable) {
+                    allAvailable = false;
+                    unavailableSeats.push(seatId);
+                }
+            }
+        });
+
+        if (!allAvailable) {
+            e.preventDefault();
+            alert('Некоторые выбранные места стали недоступны. Пожалуйста, обновите выбор.');
+
+            // Автоматически снимаем выбор с недоступных мест
+            unavailableSeats.forEach(seatId => {
+                const index = selectedSeats.indexOf(seatId);
+                if (index > -1) {
+                    selectedSeats.splice(index, 1);
+                    delete seatInfo[seatId];
+
+                    // Восстанавливаем стиль места
+                    const seatElement = document.querySelector(`.seat[data-id="${seatId}"]`);
+                    if (seatElement) {
+                        seatElement.classList.remove('selected');
+                        const seatType = seatElement.getAttribute('data-seat-type');
+                        if (seatType === 'VIP') {
+                            seatElement.classList.add('vip');
+                        } else if (seatType === 'COUPLE') {
+                            seatElement.classList.add('couple');
+                        } else if (seatType === 'DISABLED') {
+                            seatElement.classList.add('disabled');
+                        } else {
+                            seatElement.classList.add('available');
+                        }
+                    }
+                }
+            });
+
+            updateDisplay();
+            return false;
+        }
+
+        // Показываем сообщение о переходе к оплате
+        const btn = document.getElementById('submit-btn');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Переход к оплате...';
+        btn.disabled = true;
+
+        // Форма отправится стандартным способом
+        return true;
+    });
+</script>
+
+<!-- Добавляем Bootstrap JS для работы alert -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

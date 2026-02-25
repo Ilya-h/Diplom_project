@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение покупки</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">Кинотеатр</a>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="alert alert-success">
+                <h1>🎉 Покупка успешно завершена!</h1>
+                <p>Ваши билеты были успешно приобретены.</p>
+            </div>
+
+            <div th:if="${tickets != null and not tickets.empty}" class="mt-4">
+                <h3>Ваши билеты:</h3>
+
+                <div th:each="ticket : ${tickets}" class="card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 th:text="${ticket.session?.movie?.title ?: 'Фильм'}">Фильм</h5>
+                                <p><strong>Дата:</strong>
+                                    <span th:if="${ticket.session?.startTime}"
+                                          th:text="${#temporals.format(ticket.session.startTime, 'dd.MM.yyyy')}">01.01.2023</span>
+                                    <span th:unless="${ticket.session?.startTime}">-</span>
+                                </p>
+                                <p><strong>Время:</strong>
+                                    <span th:if="${ticket.session?.startTime}"
+                                          th:text="${#temporals.format(ticket.session.startTime, 'HH:mm')}">18:00</span>
+                                    <span th:unless="${ticket.session?.startTime}">-</span>
+                                </p>
+                                <p><strong>Зал:</strong>
+                                    <span th:text="${ticket.seat?.hall?.name ?: 'Не указан'}">Зал 1</span>
+                                </p>
+                                <p><strong>Место:</strong>
+                                    Ряд <span th:text="${ticket.seat?.rowNumber ?: '-'}">1</span>,
+                                    Место <span th:text="${ticket.seat?.seatNumber ?: '-'}">5</span>
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <h5>Билет №[[${ticket.id}]]</h5>
+                                <p class="text-muted">QR-код будет доступен в приложении</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a th:href="@{/customer/tickets}" class="btn btn-primary">Посмотреть все мои билеты</a>
+                <a th:href="@{/booking/movies}" class="btn btn-secondary">Купить еще билеты</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

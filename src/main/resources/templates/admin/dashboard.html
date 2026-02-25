@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Админ панель</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Кинотеатр Админ</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link active" href="/admin/dashboard">Статистика сегодня</a></li>
+
+        <!-- Фильмы -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            Фильмы
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/admin/movies">Все фильмы</a></li>
+            <li><a class="dropdown-item" href="/admin/movies/new">Добавить фильм</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/admin/reports/movies">Статистика фильмов</a></li>
+          </ul>
+        </li>
+
+        <!-- Сеансы -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            Сеансы
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/admin/sessions">Все сеансы</a></li>
+            <li><a class="dropdown-item" href="/admin/sessions/new">Добавить сеанс</a></li>
+            <li><a class="dropdown-item" href="/admin/sessions/today">Сеансы сегодня</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/admin/reports/sessions">Статистика сеансов</a></li>
+          </ul>
+        </li>
+
+        <!-- Кинозалы -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            Кинозалы
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/admin/halls">Все кинозалы</a></li>
+            <li><a class="dropdown-item" href="/admin/halls/new">Добавить кинозал</a></li>
+          </ul>
+        </li>
+
+        <!-- Пользователи -->
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/users">Пользователи</a>
+        </li>
+
+        <!-- Отчеты -->
+        <li class="nav-item">
+          <a class="nav-link" href="/admin/reports/sales">Отчеты</a>
+        </li>
+      </ul>
+
+      <!-- Выход -->
+      <form th:action="@{/logout}" method="post" class="nav-item" style="display: inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="nav-link btn btn-link" style="color: rgba(255,255,255,.55); padding: 8px 16px;">
+          Выйти
+        </button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h2>Статистика для администратора</h2>
+
+  <div class="row mt-4">
+    <div class="col-md-4">
+      <div class="card text-white bg-primary mb-3">
+        <div class="card-header">Общая выручка</div>
+        <div class="card-body">
+          <h4 class="card-title" th:text="${totalRevenue ?: '0'} + ' ₽'">0 ₽</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5>Продажи за сегодня</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <thead>
+            <tr>
+              <th>Фильм</th>
+              <th>Продажи</th>
+              <th>Выручка</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Измените dailySales на todayMovieSales -->
+            <tr th:each="movieSale : ${todayMovieSales}">
+              <td th:text="${movieSale.title}">Фильм</td>
+              <td th:text="${movieSale.ticketsSold} + ' билетов'">0 билетов</td>
+              <td th:text="${movieSale.totalRevenue != null ? #numbers.formatDecimal(movieSale.totalRevenue, 0, 2) : '0'} + ' ₽'">
+                0 ₽
+              </td>
+            </tr>
+            <tr th:if="${todayMovieSales == null or todayMovieSales.isEmpty()}">
+              <td colspan="3" class="text-muted text-center">
+                Нет продаж за сегодня
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h5>Популярные фильмы</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <thead>
+            <tr>
+              <th>Фильм</th>
+              <th>Популярность</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="movie : ${popularMovies}">
+              <td th:text="${movie.title}">Фильм</td>
+              <td th:text="${movie.ticketsSold} + ' билетов'">0 билетов</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

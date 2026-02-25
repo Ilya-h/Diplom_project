@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Статистика сеансов</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/admin/dashboard">Кинотеатр Админ</a>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h2>Статистика сеансов</h2>
+
+  <div class="card mt-4">
+    <div class="card-body">
+      <table class="table">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Фильм</th>
+          <th>Зал</th>
+          <th>Дата и время</th>
+          <th>Цена</th>
+          <th>Формат</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Сортировка по ID по возрастанию -->
+        <tr th:each="sess : ${sessions}">
+          <td th:text="${sess.id}">1</td>
+          <td th:text="${sess.movie.title}">Фильм</td>
+          <td th:text="${sess.hall.name}">Зал 1</td>
+          <td th:text="${#temporals.format(sess.startTime, 'dd.MM.yyyy HH:mm')}">01.01.2023 18:00</td>
+          <td>
+            <span th:text="${#numbers.formatDecimal(sess.price, 1, 2, 'POINT')}"></span> ₽
+          </td>
+          <td th:text="${sess.format}">2D</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

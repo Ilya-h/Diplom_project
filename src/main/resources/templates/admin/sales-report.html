@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Отчет по продажам</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/admin/dashboard">Кинотеатр Админ</a>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h2>Отчет по продажам</h2>
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Фильтры отчета</h5>
+    </div>
+    <div class="card-body">
+      <form method="get" action="/admin/reports/sales">
+        <div class="row">
+          <div class="col-md-4">
+            <label class="form-label">Период</label>
+            <select name="period" class="form-select">
+              <option value="today" th:selected="${period == 'today'}">Сегодня</option>
+              <option value="week" th:selected="${period == 'week'}">Неделя</option>
+              <option value="month" th:selected="${period == 'month'}">Месяц</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Название фильма</label>
+            <input type="text" name="movieTitle" class="form-control" th:value="${movieTitle}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Жанр</label>
+            <input type="text" name="genre" class="form-control" th:value="${genre}">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Сформировать отчет</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <h5>Данные отчета</h5>
+    </div>
+    <div class="card-body">
+      <p><strong>Период:</strong> <span th:text="${period} ?: 'Не выбран'">Не выбран</span></p>
+      <!-- Исправлено: используем #temporals для LocalDateTime -->
+      <p><strong>Начало:</strong> <span th:text="${startDate != null ? #temporals.format(startDate, 'dd.MM.yyyy HH:mm') : '-'}">-</span></p>
+      <p><strong>Конец:</strong> <span th:text="${endDate != null ? #temporals.format(endDate, 'dd.MM.yyyy HH:mm') : '-'}">-</span></p>
+
+      <div class="alert alert-info mt-3">
+        Отчет будет отображать статистику продаж за выбранный период.
+        <!-- Здесь будет таблица с данными отчета -->
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
