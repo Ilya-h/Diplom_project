@@ -60,7 +60,10 @@
     </ul>
     <i><li>Frontend:</li></i>
     <ul>
-      <li>HTML</li>
+      <li>HTML5</li>
+      <li>CSS3</li>
+      <li>Bootstrap5</li>
+      <li>JavaScript</li>
     </ul>
   </ol>
 </p>
