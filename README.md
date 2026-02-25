@@ -54,6 +54,6 @@
 <h2><br><b>Стек технологии:</b><br></h2>
 <p>
   <ol>
-    <li><em>Backend:</em></li>
+    <li><strong>Backend:</strong></li>
   </ol>
 </p>
